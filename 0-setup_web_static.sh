@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
+# script that sets up web servers for the deployment of web_static
+sudo apt-get update
+sudo apt-get -y install nginx
 
-# Install Nginx if not already installed
-if ! command -v nginx &> /dev/null
-then
-    sudo apt-get -y update
-    sudo apt-get -y install nginx
-fi
 
-# Create required directories
-sudo mkdir -p /data/web_static/releases/test/ /data/web_static/shared/
+sudo mkdir -p /data/
+sudo mkdir -p /data/web_static/
+sudo mkdir -p /data/web_static/releases/
+sudo mkdir -p /data/web_static/shared/
+sudo mkdir -p /data/web_static/releases/test/
 sudo touch /data/web_static/releases/test/index.html
-echo "<html>
+sudo echo "<html>
   <head>
   </head>
   <body>
@@ -18,15 +18,10 @@ echo "<html>
   </body>
 </html>" | sudo tee /data/web_static/releases/test/index.html
 
-# Create or recreate symbolic link
-sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+sudo ln -s -f /data/web_static/releases/test/ /data/web_static/current
 
-# Give ownership to ubuntu user and group
-sudo chown -R root:root /data/
+sudo chown -R ubuntu:ubuntu /data/
 
-# Update Nginx configuration
-config="\n\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t}"
-sudo sed -i "/server_name _;/a $config" /etc/nginx/sites-available/default
+sudo sed -i '/listen 80 default_server/a location /hbnb_static { alias /data/web_static/current/;}' /etc/nginx/sites-enabled/default
 
-# Restart Nginx
 sudo service nginx restart
